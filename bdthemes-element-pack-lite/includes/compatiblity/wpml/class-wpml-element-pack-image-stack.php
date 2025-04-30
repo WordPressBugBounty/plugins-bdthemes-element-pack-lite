@@ -2,23 +2,23 @@
 namespace ElementPack\Includes;
 
 /**
- * Class WPML_ElementPack_Accordion
+ * Class WPML_ElementPack_Image_Stack
  */
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
-class WPML_ElementPack_Accordion extends WPML_Module_With_Items {
+class WPML_ElementPack_Image_Stack extends WPML_Module_With_Items {
 
 	/**
 	 * @return string
 	 */
 	public function get_items_field() {
-		return 'tabs';
+		return 'image_stack_items';
 	}
 
 	/**
 	 * @return array
 	 */
 	public function get_fields() {
-		return array( 'tab_title', 'tab_content' );
+		return array( 'tooltip_text' );
 	}
 
 	/**
@@ -27,12 +27,8 @@ class WPML_ElementPack_Accordion extends WPML_Module_With_Items {
 	 */
 	protected function get_title( $field ) {
 		switch( $field ) {
-
-			case 'tab_title':
-				return esc_html__( 'Accordion: Title', 'bdthemes-element-pack' );
-
-			case 'tab_content':
-				return esc_html__( 'Accordion: Content', 'bdthemes-element-pack' );
+			case 'tooltip_text':
+				return esc_html__( 'Image Stack: Tooltip Text', 'bdthemes-element-pack' );
 
 			default:
 				return '';
@@ -45,15 +41,11 @@ class WPML_ElementPack_Accordion extends WPML_Module_With_Items {
 	 */
 	protected function get_editor_type( $field ) {
 		switch( $field ) {
-			case 'tab_title':
+			case 'tooltip_text':
 				return 'LINE';
-
-			case 'tab_content':
-				return 'AREA';
 
 			default:
 				return '';
 		}
 	}
-
-}
+} 
