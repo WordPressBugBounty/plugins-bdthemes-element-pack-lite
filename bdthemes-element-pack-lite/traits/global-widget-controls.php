@@ -622,7 +622,7 @@ trait Global_Widget_Controls {
 		$this->start_controls_section(
 			'section_content_additional',
 			[ 
-				'label' => __( 'Additional', 'bdthemes-element-pack' ),
+				'label' => __( 'Additional Options', 'bdthemes-element-pack' ),
 			]
 		);
 
@@ -640,6 +640,16 @@ trait Global_Widget_Controls {
 			[ 
 				'label' => __( 'Multiple Open', 'bdthemes-element-pack' ),
 				'type'  => Controls_Manager::SWITCHER,
+			]
+		);
+		$this->add_control(
+			'always_active_all_items',
+			[ 
+				'label'   => __( 'Always Active All Items', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'type'    => Controls_Manager::SWITCHER,
+				'condition' => [ 
+					'multiple' => 'yes'
+				]
 			]
 		);
 
@@ -745,19 +755,55 @@ trait Global_Widget_Controls {
 
 		$this->end_controls_section();
 
-		//Style
+		/**
+		 * Accordion Style
+		 */
 		$this->start_controls_section(
-			'section_toggle_style_title',
+			'section_accordion_items',
 			[ 
-				'label' => __( 'Item', 'bdthemes-element-pack' ),
+				'label' => __( 'Accordion', 'bdthemes-element-pack' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[ 
+				'name'     => 'accordion_item_background',
+				'selector' => '{{WRAPPER}} .bdt-ep-accordion-item',
+			]
+		);
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[ 
+				'name'        => 'accordion_item_border',
+				'placeholder' => '1px',
+				'default'     => '1px',
+				'selector'    => '{{WRAPPER}} .bdt-ep-accordion-item',
+			]
+		);
+		$this->add_responsive_control(
+			'accordion_item_radius',
+			[ 
+				'label'      => __( 'Border Radius', 'bdthemes-element-pack' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [ 
+					'{{WRAPPER}} .bdt-ep-accordion-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}}; overflow: hidden;',
+				],
+			]
+		);
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[ 
+				'name'     => 'accordion_item_box_shadow',
+				'selector' => '{{WRAPPER}} .bdt-ep-accordion-item',
 			]
 		);
 
 		$this->add_responsive_control(
 			'item_spacing',
 			[ 
-				'label'     => __( 'Item Gap', 'bdthemes-element-pack' ),
+				'label'     => __( 'Gap', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -771,6 +817,28 @@ trait Global_Widget_Controls {
 				'selectors' => [ 
 					'{{WRAPPER}} .bdt-ep-accordion-item + .bdt-ep-accordion-item' => 'margin-top: {{SIZE}}{{UNIT}};',
 				],
+			]
+		);
+
+		$this->add_control(
+			'remove_item_border',
+			[ 
+				'label'       => esc_html__( 'Remove Border Between Items', 'bdthemes-element-pack' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'description' => esc_html__( 'This will remove the top border of all items except the first one.', 'bdthemes-element-pack' ),
+				'selectors'   => [ 
+					'{{WRAPPER}} .bdt-ep-accordion-item + .bdt-ep-accordion-item' => 'border-block-start: none;',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_toggle_style_title',
+			[ 
+				'label' => __( 'Title', 'bdthemes-element-pack' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
 

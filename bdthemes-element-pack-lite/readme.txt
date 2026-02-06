@@ -1,17 +1,17 @@
 === Element Pack Addons for Elementor ===
-Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman, rakibulpk, muhammadasik, tauhidalam
+Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman, rakibulpk, muhammadasik, tauhidalam, syedfarhanreza, shmusuf, arafatakashakku, shaikatazim, shamim496
 Donate link: http://bdthemes.com/
 Tags: elementor, elementor addons, elementor template, elementor widgets, dynamic builder
 Requires at least: 5.0.0
-Tested up to: 6.8.2
+Tested up to: 6.9
 Requires PHP: 7.4.0
-Stable tag: 8.2.3
+Stable tag: 8.3.18
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
-Elementor requires at least: 3.22
-Elementor tested up to: 3.32.2
+Elementor requires at least: 3.28
+Elementor tested up to: 3.35.0
 
-Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce builder and more.
+Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce and more.
 
 
 == Description ==
@@ -42,7 +42,7 @@ Element Pack gives you everything you need to build high-quality websites quickl
 ***"An excellent pack of tools to customize your website easily"*** - G2
 
 
-https://youtu.be/NhaIMIrFh1Q?si=mgsH9QFxW1Z9rYHi
+https://youtu.be/Shxejp20pW0?si=Md3CwBSHS6HRR_Lt
 
 ## Supercharge your Elementor experience with Element Pack – the most comprehensive Elementor addon. 
 
@@ -278,6 +278,122 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 
 == Changelog ==
 
+= 8.3.18 [3rd February 2026] =
+
+* Fixed: Path traversal vulnerability fixed in SVG Image widget
+
+= 8.3.17 [1st February 2026] =
+
+* Added: Horizontal line added in grid line extension
+* Added: In Text Controls, dynamic tag compatibility added to the countdown widget
+* Fixed: Vulnerability for Local File Inclusion issue fixed ( Thanks to Phat RiO )
+
+= 8.3.16 [12th January 2026] =
+
+* Fixed: Email header injection vulnerability fixed in Contact Form widget
+
+= 8.3.15 [7th January 2026] =
+
+* Fixed: Image Masking color shape not found issue fixed
+
+= 8.3.14 [1st January 2026] =
+
+* Fixed: CSRF vulnerability fixed in Simple Contact Form widget
+
+= 8.3.13 [1st January 2026] =
+
+* Fixed: Masonry issue fixed in testimonial grid widget
+* Fixed: Biggopti cache image URL issue fixed
+* Updated: Caching system updated for Facebook Feed widget
+
+= 8.3.12 [24th December 2025] =
+
+* Fixed: Social icon issue fixed in member widget
+* Fixed: Image issue fixed in Facebook Feed and Facebook Feed Carousel widgets
+
+= 8.3.11 [17th December 2025] =
+
+* Fixed: Icon position issue fixed in lighbox widget
+* Updated: System improved
+
+= 8.3.10 [10th December 2025] =
+
+* Fixed: Others plugin issue fixed in Setup Wizard & Admin Dashboard
+
+= 8.3.9 [2nd December 2025] =
+
+* Added: Added support for configuring the Contact Number field as optional ( Thanks to Marc Landman )
+* Updated: Made compatible with WordPress version 6.9
+
+= 8.3.8 [26th November 2025] =
+
+* Added: Always Active All Items control added in accordion widget
+* Fixed: Proper condition applied for text, read more and like/comments controls in the facebook feed widget
+
+= 8.3.7 [20th November 2025] =
+
+* Fixed: Notice duplicate issue fixed
+
+= 8.3.6 [19th November 2025] =
+
+* Added: Ellipsis added in testimonial grid widget
+* Fixed: Button URL issue fixed in Content Switcher widget ( Thanks to Shohan Khan )
+
+= 8.3.5 [16th November 2025] =
+
+* Fixed: Security fixed in open street map widget
+
+= 8.3.4 [13th November 2025] =
+
+* Updated: System improved
+
+= 8.3.3 [12th November 2025] =
+
+* Fixed: API Banner duplicate issue fixed
+
+= 8.3.2 [9th November 2025] =
+
+* Updated: System improved
+
+= 8.3.1 [6th November 2025] =
+
+* Added: Shape builder extension added (Pro)
+* Added: Permission Manager feature added (Pro)
+* Added: Custom Fonts upload feature added (Pro)
+* Added: Custom Icons Library feature added (Pro)
+* Added: Switcher knob size added in content switcher widget
+* Added: Content type price card added in content switcher widget
+* Fixed: reCAPTCHA issue fixed in Simple Contact Form widget
+* Fixed: SVG Draw Animation issue fixed in SVG Image widget
+* Fixed: JS confliction with Zoloblocks fixed
+* Fixed: Backdrop filter grid layout issue fixed
+
+= 8.3.0 [26th October 2025] =
+
+* Added: Animated card widget added
+* Added: Accordion items controls added in accordion widget
+* Added: Rating (Above Text) feature added in testimonial grid widget
+* Fixed: Backdrop filter liquid glass issue fixed
+* Fixed: reCAPTCHA issue fixed in Simple Contact Form, User Register widget
+* Updated: Security improved
+
+= 8.2.6 [13th October 2025] =
+
+* Fixed: Security: Privilege escalation vulnerability fixed in Setup Wizard template import endpoints
+* Fixed: Navigation dots size issue fixed in editor mode
+
+= 8.2.5 [9th October 2025] =
+
+* Added: Item blend mode & text typography added in fancy icons widget
+* Fixed: Elementor pro theme builder conflict fixed
+
+= 8.2.4 [8th October 2025] =
+
+* Added: Template Library preview fallback added
+* Added: Content style controls added in review card grid & carousel widgets
+* Fixed: CSS file missing issue fixed in review card widget
+* Updated: Error handling updated in Template Library
+
 = 8.2.3 [28th September 2025] =
 
 * Added: New widgets & extensions tutorial video added in - [Dynamic Grid](https://youtu.be/-BdpQ2lttSo?si=vpEHqHl_pTzQxhyY), [Dynamic Carousel](https://youtu.be/uc08OzVbq_g?si=3vCt8T4zeFSw4oiU), [SVG Maps](https://youtu.be/LZMtIMqBTZY?si=JvfHuTJWFWPXE5mc), [Text Gradient Background](https://youtu.be/J1DNE_Jx4Rs?si=l8Q5Y0ddMl9YzqEh), [Shape Divider](https://youtu.be/Onlgq2ND5EM?si=AceE8KxbPD46vlbS), [White Label](https://youtu.be/sXEgAgAKNDc?si=Rsw0nxFYylNhWuaQ), [Custom CSS & Js](https://youtu.be/2kWiUA_TcRY?si=6l0q7byh8-kT_zU4)
@@ -436,3 +552,7 @@ Note: we don’t provide plugin support for Adult sites.
 ### Can I use Element Pack on client sites?
 
 - Yes, definitely. You can use our plugin on any website, self or client, within the allowed number of licenses provided by the package you purchase. There are no bindings to the usage.
+
+###  How can I report security bugs? 
+
+-  You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/9e5fbc2f-c2b2-434c-b42e-2516005fddbc)

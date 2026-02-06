@@ -49,9 +49,9 @@ class Testimonial_Grid extends Module_Base {
 
 	public function get_script_depends() {
 		if ( $this->ep_is_edit_mode() ) {
-			return [ 'imagesloaded', 'ep-scripts' ];
+			return [ 'ep-scripts' ];
 		} else {
-			return [ 'imagesloaded', 'ep-text-read-more-toggle' ];
+			return [ 'ep-text-read-more-toggle' ];
 		}
 	}
 
@@ -106,6 +106,10 @@ class Testimonial_Grid extends Module_Base {
 					'4' => '4',
 				],
 				'frontend_available' => true,
+				'selectors'       => [ 
+					'{{WRAPPER}} .bdt-testimonial-grid-default' => 'grid-template-columns: repeat({{SIZE}}, 1fr);',
+					'{{WRAPPER}} .bdt-testimonial-grid-masonry' => 'columns: {{SIZE}};',
+				],
 			]
 		);
 
@@ -142,8 +146,8 @@ class Testimonial_Grid extends Module_Base {
 					],
 				],
 				'selectors' => [ 
-					'{{WRAPPER}} .bdt-testimonial-grid > .bdt-grid'     => 'margin-left: -{{SIZE}}px',
-					'{{WRAPPER}} .bdt-testimonial-grid > .bdt-grid > *' => 'padding-left: {{SIZE}}px',
+					'{{WRAPPER}} .bdt-testimonial-grid-default' => 'grid-column-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-testimonial-grid-masonry' => 'column-gap: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -164,8 +168,8 @@ class Testimonial_Grid extends Module_Base {
 					],
 				],
 				'selectors' => [ 
-					'{{WRAPPER}} .bdt-testimonial-grid > .bdt-grid'     => 'margin-top: -{{SIZE}}px',
-					'{{WRAPPER}} .bdt-testimonial-grid > .bdt-grid > *' => 'margin-top: {{SIZE}}px',
+					'{{WRAPPER}} .bdt-testimonial-grid-default' => 'grid-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-testimonial-grid-masonry .bdt-testimonial-grid-item' => 'margin-bottom: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -237,6 +241,22 @@ class Testimonial_Grid extends Module_Base {
 				],
 			]
 		);
+		$this->add_control(
+            'ellipsis',
+            [
+                'label' => esc_html__('Ellipsis', 'bdthemes-element-pack') . BDTEP_NC,
+                'type' => Controls_Manager::TEXT,
+                'dynamic' => ['active' => true],
+                'condition' => [
+                    'show_text' => 'yes',
+					'text_limit!' => [0, ''],
+					'text_read_more_toggle' => ''
+                ],
+				'ai' => [
+                    'active' => false,
+                ],
+            ]
+        );
 
 		$this->add_control(
 			'strip_shortcode',
@@ -253,7 +273,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_control(
 			'text_read_more_toggle',
 			[ 
-				'label' => esc_html__( 'Text Read More Toggle', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label' => esc_html__( 'Text Read More Toggle', 'bdthemes-element-pack' ),
 				'type'  => Controls_Manager::SWITCHER,
 				'condition'   => [ 
 					'show_text' => 'yes',
@@ -272,10 +292,23 @@ class Testimonial_Grid extends Module_Base {
 		);
 
 		$this->add_control(
+			'show_rating_above_text',
+			[ 
+				'label'   => esc_html__( 'Rating (Above Text)', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'type'    => Controls_Manager::SWITCHER,
+				'condition' => [ 
+					'show_rating' => 'yes',
+					'layout'    => '1',
+				],
+			]
+		);
+
+		$this->add_control(
 			'show_review_platform',
 			[ 
-				'label' => esc_html__( 'Review Platform', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label' => esc_html__( 'Review Platform', 'bdthemes-element-pack' ),
 				'type'  => Controls_Manager::SWITCHER,
+				'separator' => 'before'
 			]
 		);
 
@@ -292,6 +325,7 @@ class Testimonial_Grid extends Module_Base {
 			[ 
 				'label' => esc_html__( 'Masonry', 'bdthemes-element-pack' ),
 				'type'  => Controls_Manager::SWITCHER,
+				'render_type' => 'template'
 			]
 		);
 
@@ -367,7 +401,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_control(
 			'filter_custom_text',
 			[ 
-				'label'     => esc_html__( 'Custom Text', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Custom Text', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SWITCHER,
 				'condition' => [ 
 					'show_filter_bar' => 'yes',
@@ -590,7 +624,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_responsive_control(
 			'image_size',
 			[ 
-				'label'     => esc_html__( 'Size', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Size', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -758,7 +792,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_control(
 			'original_color',
 			[ 
-				'label'     => esc_html__( 'Enable Original Color', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Enable Original Color', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SWITCHER,
 				'condition' => [ 
 					'show_review_platform' => 'yes'
@@ -815,7 +849,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_responsive_control(
 			'rating_size',
 			[ 
-				'label'     => esc_html__( 'Size', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Size', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -832,7 +866,7 @@ class Testimonial_Grid extends Module_Base {
 		$this->add_responsive_control(
 			'rating_spacing',
 			[ 
-				'label'     => esc_html__( 'Spacing', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Spacing', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -1215,6 +1249,78 @@ class Testimonial_Grid extends Module_Base {
 		$this->gloabl_read_more_link_style_controls();
 
 		$this->end_controls_section();
+
+		/**
+		 * Addintional Style Tab
+		 */
+		$this->start_controls_section(
+			'section_style_additional',
+			[ 
+				'label' => esc_html__( 'Additional Style', 'bdthemes-element-pack' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+				'condition' => [
+					'show_rating_above_text' => 'yes',
+					'layout'    => '1',
+				],
+			]
+		);
+
+		$this->add_control(
+			'content_heading',
+			[ 
+				'label' => esc_html__( 'Content', 'bdthemes-element-pack' ),
+				'type' => Controls_Manager::HEADING,
+			]
+		);
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[ 
+				'name'     => 'content_background',
+				'selector' => '{{WRAPPER}} .bdt-testimonial-text-rating-wrapper',
+			]
+		);
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[ 
+				'name'     => 'content_border',
+				'selector' => '{{WRAPPER}} .bdt-testimonial-text-rating-wrapper',
+			]
+		);
+		$this->add_responsive_control(
+			'content_border_radius',
+			[ 
+				'label'      => esc_html__( 'Border Radius', 'bdthemes-element-pack' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [ 
+					'{{WRAPPER}} .bdt-testimonial-text-rating-wrapper' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+		$this->add_responsive_control(
+			'content_padding',		
+			[ 
+				'label'      => esc_html__( 'Padding', 'bdthemes-element-pack' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [ 
+					'{{WRAPPER}} .bdt-testimonial-text-rating-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+		$this->add_responsive_control(
+			'content_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'bdthemes-element-pack' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bdt-testimonial-grid .bdt-testimonial-text-rating-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 
@@ -1362,6 +1468,7 @@ class Testimonial_Grid extends Module_Base {
 		} else {
 			$text_limit = $settings['text_limit'];
 		}
+		$ellipsis = isset($settings['ellipsis']) ? $settings['ellipsis'] : '' ;
 
 		?>
 		<div <?php $this->print_render_attribute_string( 'text-wrap' ); ?>>
@@ -1369,7 +1476,7 @@ class Testimonial_Grid extends Module_Base {
 			if ( has_excerpt() ) {
 				the_excerpt();
 			} else {
-				echo wp_kses_post(element_pack_custom_excerpt( $text_limit, $strip_shortcode ));
+				echo wp_kses_post(element_pack_custom_excerpt( $text_limit, $strip_shortcode, $ellipsis ));
 			}
 			?>
 		</div>
@@ -1433,7 +1540,7 @@ class Testimonial_Grid extends Module_Base {
 				<?php if ( isset( $settings['filter_custom_text'] ) && ( $settings['filter_custom_text'] != 'yes' ) ) : ?>
 					<?php esc_html_e( 'Filter', 'bdthemes-element-pack' ); ?>
 				<?php else : ?>
-					<?php esc_html_e( $settings['filter_custom_text_filter'], 'bdthemes-element-pack' ); ?>
+					<?php echo esc_html( $settings['filter_custom_text_filter'] ); ?>
 				<?php endif; ?>
 			</button>
 			<div data-bdt-dropdown="mode: click;"
@@ -1442,7 +1549,7 @@ class Testimonial_Grid extends Module_Base {
 					<?php if ( $settings['filter_custom_text']) : ?>
 						<?php if ( ! empty($settings['filter_custom_text_all']) ) : ?>
 							<li class="bdt-ep-grid-filter bdt-active" data-bdt-filter-control>
-								<a href="#"><?php esc_html_e( $settings['filter_custom_text_all'], 'bdthemes-element-pack' ); ?></a>
+								<a href="#"><?php echo esc_html( $settings['filter_custom_text_all'] ); ?></a>
 							</li>
 						<?php endif; ?>
 					<?php else : ?>
@@ -1466,7 +1573,7 @@ class Testimonial_Grid extends Module_Base {
 				<?php if ( $settings['filter_custom_text']) : ?>
 					<?php if ( ! empty($settings['filter_custom_text_all']) ) : ?>
 						<li class="bdt-ep-grid-filter bdt-active" data-bdt-filter-control>
-							<a href="#"><?php esc_html_e( $settings['filter_custom_text_all'], 'bdthemes-element-pack' ); ?></a>
+							<a href="#"><?php echo esc_html( $settings['filter_custom_text_all'] ); ?></a>
 						</li>
 					<?php endif; ?>
 				<?php else : ?>
@@ -1524,15 +1631,17 @@ class Testimonial_Grid extends Module_Base {
 
 		$wp_query = $this->render_query( $settings['posts_per_page'] );
 
-		$this->add_render_attribute( 'testimonial-grid', 'data-bdt-grid', '' );
-		$this->add_render_attribute( 'testimonial-grid', 'class', 'bdt-grid' );
+		// $this->add_render_attribute( 'testimonial-grid', 'data-bdt-grid', '' );
+		// $this->add_render_attribute( 'testimonial-grid', 'class', 'bdt-grid' );
 
 		if ( $settings['item_match_height'] ) {
 			$this->add_render_attribute( 'testimonial-grid', 'data-bdt-height-match', 'div > .bdt-testimonial-grid-item-inner' );
 		}
 
 		if ( $settings['item_masonry'] ) {
-			$this->add_render_attribute( 'testimonial-grid', 'data-bdt-grid', 'masonry: true;' );
+			$this->add_render_attribute( 'testimonial-grid', 'class', 'bdt-testimonial-grid-masonry' );
+		} else {
+			$this->add_render_attribute( 'testimonial-grid', 'class', 'bdt-testimonial-grid-default' );
 		}
 
 		if ( $wp_query->have_posts() ) {
@@ -1545,14 +1654,14 @@ class Testimonial_Grid extends Module_Base {
 				while ( $wp_query->have_posts() ) :
 					$wp_query->the_post();
 
-					$columns_mobile = isset( $settings['columns_mobile'] ) ? $settings['columns_mobile'] : 1;
-					$columns_tablet = isset( $settings['columns_tablet'] ) ? $settings['columns_tablet'] : 2;
-					$columns        = isset( $settings['columns'] ) ? $settings['columns'] : 2;
+					// $columns_mobile = isset( $settings['columns_mobile'] ) ? $settings['columns_mobile'] : 1;
+					// $columns_tablet = isset( $settings['columns_tablet'] ) ? $settings['columns_tablet'] : 2;
+					// $columns        = isset( $settings['columns'] ) ? $settings['columns'] : 2;
 
 
-					$this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns_mobile ) );
-					$this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns_tablet ) . '@s' );
-					$this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns ) . '@m' );
+					// $this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns_mobile ) );
+					// $this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns_tablet ) . '@s' );
+					// $this->add_render_attribute( 'testimonial-grid-item' . get_the_Id(), 'class', 'bdt-width-1-' . esc_attr( $columns ) . '@m' );
 
 					$platform = get_post_meta( get_the_ID(), 'bdthemes_tm_platform', true );
 
@@ -1575,22 +1684,32 @@ class Testimonial_Grid extends Module_Base {
 											$this->render_title( get_the_ID() );
 											$this->render_address( get_the_ID() );
 
-											if ( $settings['show_rating'] ) : ?>
-												<?php if ( '3' <= $settings['columns'] ) : ?>
-													<?php $this->render_rating( get_the_ID() ); ?>
-												<?php endif; ?>
-
-												<?php if ( '2' >= $settings['columns'] ) : ?>
-													<div class="bdt-position-center-right bdt-text-right">
+											if ( $settings['show_rating_above_text'] === '' ) : ?>
+												<?php if ( $settings['show_rating'] ) : ?>
+													<?php if ( '3' <= $settings['columns'] ) : ?>
 														<?php $this->render_rating( get_the_ID() ); ?>
-													</div>
+													<?php endif; ?>
+
+													<?php if ( '2' >= $settings['columns'] ) : ?>
+														<div class="bdt-position-center-right bdt-text-right">
+															<?php $this->render_rating( get_the_ID() ); ?>
+														</div>
+													<?php endif; ?>
 												<?php endif; ?>
 											<?php endif; ?>
 
 										</div>
 									<?php endif; ?>
 								</div>
-								<?php $this->render_excerpt(); ?>
+
+								<?php if ( $settings['show_rating_above_text'] or $settings['show_text'] ) : ?>
+								<div class="bdt-testimonial-text-rating-wrapper bdt-margin-top">
+									<?php if ( $settings['show_rating_above_text'] ) : ?>
+										<?php $this->render_rating( get_the_ID() ); ?>
+									<?php endif; ?>
+									<?php $this->render_excerpt(); ?>
+								</div>
+								<?php endif; ?>
 							</div>
 						<?php endif; ?>
 

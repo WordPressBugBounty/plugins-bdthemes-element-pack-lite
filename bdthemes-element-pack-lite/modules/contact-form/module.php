@@ -21,25 +21,34 @@ class Module extends Element_Pack_Module_Base {
     }
 
     public function is_valid_captcha() {
-
         $ep_api_settings = get_option('element_pack_api_settings');
 
-        if (isset($_POST['g-recaptcha-response']) and !empty($ep_api_settings['recaptcha_secret_key'])) {
-            $request  = wp_remote_get('https://www.google.com/recaptcha/api/siteverify?secret=' . $ep_api_settings['recaptcha_secret_key'] . '&response=' . esc_textarea( sanitize_text_field( wp_unslash( $_POST["g-recaptcha-response"] ) ) ) . '&remoteip=' . isset( $_SERVER["REMOTE_ADDR"] ) ? sanitize_text_field( wp_unslash( $_SERVER["REMOTE_ADDR"] ) ) : '' );
-            $response = wp_remote_retrieve_body($request);
+        if (isset($_POST['g-recaptcha-response']) && !empty($ep_api_settings['recaptcha_secret_key'])) {
+            $remote_ip = isset($_SERVER["REMOTE_ADDR"]) ? sanitize_text_field( wp_unslash( $_SERVER["REMOTE_ADDR"] ) ) : '';
 
-            $result = json_decode($response, TRUE);
+            $response = wp_remote_post(
+                'https://www.google.com/recaptcha/api/siteverify',
+                array(
+                    'body' => array(
+                        'secret'   => $ep_api_settings['recaptcha_secret_key'],
+                        'response' => sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) ),
+                        'remoteip' => $remote_ip,
+                    ),
+                )
+            );
 
-            if (isset($result['success']) && $result['success'] == 1) {
-                // Captcha ok
-                return true;
-            } else {
-                // Captcha failed;
+            if (is_wp_error($response)) {
                 return false;
             }
+
+            $result = json_decode(wp_remote_retrieve_body($response), true);
+
+            return (isset($result['success']) && $result['success'] === true);
         }
+
         return false;
     }
+
 
 
 	public function normalize_email( $email ) {
@@ -81,14 +90,14 @@ class Module extends Element_Pack_Module_Base {
 
         if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] == 'POST' ) {
 
-            if (!isset($_REQUEST['_wpnonce']) && !wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'simpleContactForm')) {
+            if (!isset($_REQUEST['_wpnonce']) || !wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'simpleContactForm')) {
                 $result = esc_html__('Security check failed!', 'bdthemes-element-pack');
                 echo '<span class="bdt-text-warning">' . esc_html($result) . '</span>';
                 wp_die();
             }
 
             $post_id   = isset( $_REQUEST['page_id'] ) ? absint($_REQUEST['page_id']) : 0;
-            $widget_id = isset( $_REQUEST['widget_id'] ) ? absint($_REQUEST['widget_id']) : 0;
+            $widget_id = isset( $_REQUEST['widget_id'] ) ? $_REQUEST['widget_id'] : 0;
 
             $error = false;
 
@@ -96,6 +105,9 @@ class Module extends Element_Pack_Module_Base {
             foreach ($_POST as $field => $value) {
                 if (is_email($value)) {
                     $value = sanitize_email($value);
+                } elseif (in_array($field, ['name', 'subject', 'contact'])) {
+                    // Use sanitize_text_field for single-line fields to prevent header injection
+                    $value = sanitize_text_field($value);
                 } else {
                     $value = sanitize_textarea_field($value);
                 }
@@ -103,8 +115,16 @@ class Module extends Element_Pack_Module_Base {
                 $form_data[$field] = strip_tags($value);
             }
 
+            // Get widget settings to check if contact number is required
+            $widget_settings = $this->get_widget_settings($post_id, $widget_id);
+            $contact_required = isset($widget_settings['contact_number_required']) && $widget_settings['contact_number_required'] === 'yes';
+
             foreach ($form_data as $key => $value) {
                 $value = trim($value);
+                // Skip validation for contact field if it's optional and empty
+                if ($key === 'contact' && !$contact_required && empty($value)) {
+                    continue;
+                }
                 if (empty($value)) {
                     $error  = true;
                     $result = $error_empty;
@@ -160,8 +180,6 @@ class Module extends Element_Pack_Module_Base {
             }
 
             /** Recaptcha*/
-
-
             $result_recaptcha = $this->get_widget_settings($post_id, $widget_id);
 
             if (isset($result_recaptcha['show_recaptcha']) && $result_recaptcha['show_recaptcha'] == 'yes') {
@@ -170,6 +188,9 @@ class Module extends Element_Pack_Module_Base {
                         $error  = true;
                         $result = esc_html__("reCAPTCHA is invalid!", "bdthemes-element-pack");
                     }
+                } else {
+                    $error  = true;
+                    $result = esc_html__("reCAPTCHA API keys are not set properly! Go to the Element Pack API settings page to configure them.", "bdthemes-element-pack");
                 }
             }
 
@@ -184,7 +205,9 @@ class Module extends Element_Pack_Module_Base {
                 // get the message from the form and add the IP address of the user below it
                 $email_message = $this->message_html($form_data['message'], $form_data['name'], $form_data['email'], $contact_number);
                 // set the e-mail headers with the user's name, e-mail address and character encoding
-                $headers = "Reply-To: " . $form_data['name'] . " <" . $form_data['email'] . ">\n";
+                // Explicitly remove newlines to prevent header injection
+                $safe_name = str_replace(["\r", "\n"], '', $form_data['name']);
+                $headers = "Reply-To: " . $safe_name . " <" . $form_data['email'] . ">\n";
                 $headers .= "Content-Type: text/html; charset=UTF-8\n";
                 $headers .= "Content-Transfer-Encoding: 8bit\n";
                 // send the e-mail with the shortcode attribute named 'email' and the POSTed data

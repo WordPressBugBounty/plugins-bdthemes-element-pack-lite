@@ -51,6 +51,25 @@ function element_pack_is_preview() {
 	return Plugin::$instance->preview->is_preview_mode();
 }
 
+function bdt_get_widget_badge( $widget_name ) {
+	if ( ! class_exists( '\ElementPack\Admin\ElementPack_Permission_Manager' ) ) {
+		return '';
+	}
+
+	$allowed_widgets = new \ElementPack\Admin\ElementPack_Permission_Manager();
+
+	if ( ! element_pack_pro_activated() ) {
+		return ' <span class="bdt-ep-pro-badge elementor-element--promotion eicon-lock">' . esc_html__( '', 'bdthemes-element-pack' ) . '</span>';
+	}
+
+	if ( ! $allowed_widgets->bdt_get_allowed_widgets_for_user( $widget_name ) ) {
+		return '<span class="bdt-ep-restricted-badge">' . esc_html__( 'Restricted', 'bdthemes-element-pack' ) . '</span>';
+	}
+
+	return ''; // No badge needed
+}
+
+
 /**
  * Show any alert by this function
  *
@@ -241,6 +260,12 @@ function element_pack_allow_tags( $tag = null ) {
 			'alt' => [],
 			'class'  => [],
 			'style' => [],
+		],
+		'button' => [
+			'type'  => [],
+			'class' => [],
+			'id'    => [],
+			'tabindex' => [],
 		],
 	];
 
@@ -733,6 +758,7 @@ function element_pack_blend_options() {
 		'saturation'  => esc_html__( 'Saturation', 'bdthemes-element-pack' ),
 		'color'       => esc_html__( 'Color', 'bdthemes-element-pack' ),
 		'luminosity'  => esc_html__( 'Luminosity', 'bdthemes-element-pack' ),
+		'normal'      => esc_html__( 'Normal', 'bdthemes-element-pack' ),
 	];
 
 	return $blend_options;
@@ -956,10 +982,15 @@ function element_pack_mask_shapes_options() {
 /**
  * This is a svg file converter function which return a svg content
  *
- * @param string file
- * @return false content
+ * @param string $icon Icon name (alphanumeric, hyphen, underscore only). No path components.
+ * @return string|false SVG content or false on failure.
  */
 function element_pack_svg_icon( $icon ) {
+
+	// Prevent path traversal: only allow safe icon names (no /, \, .., or other path components).
+	if ( ! is_string( $icon ) || $icon === '' || preg_match( '/[^a-zA-Z0-9_-]/', $icon ) ) {
+		return false;
+	}
 
 	$icon_path = BDTEP_ASSETS_PATH . "images/svg/{$icon}.svg";
 
@@ -967,9 +998,21 @@ function element_pack_svg_icon( $icon ) {
 		return false;
 	}
 
+	// Ensure resolved path stays within plugin assets (defense in depth).
+	$base   = realpath( BDTEP_ASSETS_PATH );
+	$resolved = realpath( $icon_path );
+	if ( $base === false || $resolved === false || strpos( $resolved, $base ) !== 0 ) {
+		return false;
+	}
+
+	$ext = strtolower( pathinfo( $resolved, PATHINFO_EXTENSION ) );
+	if ( $ext !== 'svg' ) {
+		return false;
+	}
+
 	ob_start();
 
-	include $icon_path;
+	include $resolved;
 
 	$svg = ob_get_clean();
 
@@ -979,17 +1022,43 @@ function element_pack_svg_icon( $icon ) {
 /**
  * This is a svg file converter function which return a svg content
  *
- * @return false content
+ * @param string $icon Full path to an SVG file. Must be under BDTEP_ASSETS_PATH.
+ * @return string|false SVG content or false on failure.
  */
 function element_pack_load_svg( $icon ) {
+
+	if ( ! is_string( $icon ) || $icon === '' ) {
+		return false;
+	}
 
 	if ( ! file_exists( $icon ) ) {
 		return false;
 	}
 
+	$base = realpath( BDTEP_ASSETS_PATH );
+	if ( $base === false ) {
+		return false;
+	}
+
+	$path = realpath( $icon );
+	if ( $path === false ) {
+		return false;
+	}
+
+	// Prevent path traversal: resolved path must be inside plugin assets.
+	if ( strpos( $path, $base ) !== 0 ) {
+		return false;
+	}
+
+	// Only allow .svg files to avoid including .php or other executable types.
+	$ext = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+	if ( $ext !== 'svg' ) {
+		return false;
+	}
+
 	ob_start();
 
-	include $icon;
+	include $path;
 
 	$svg = ob_get_clean();
 
@@ -1339,7 +1408,7 @@ function element_pack_parse_csv( $csv, $delimiter = ';', $header = true ) {
 			$html .= '<tr>';
 		}
 
-		foreach ( str_getcsv( $row, $delimiter ) as $cell ) {
+		foreach ( str_getcsv( $row, $delimiter, '"', '\\' ) as $cell ) {
 
 			$cell = trim( $cell );
 
@@ -2250,16 +2319,7 @@ if ( ! function_exists( 'ep_crypto_data' ) ) {
 			$data = json_decode( $body );
 
 			if ( isset( $data->status->error_code ) && ! empty( $data->status->error_code ) ) {
-				// echo $data->status->error_code;
 				$data = get_transient( 'ep-bitcoin' );
-				// $dataset = array(
-				//     "apiErrors" => true,
-				//     "data" => isset($data->status->error_message) ? $data->status->error_message : 'API Errors.'
-				// );
-				// echo json_encode($dataset);
-				// wp_die();
-				// print_r($data->status->error_code);
-				// echo 'API Errors - ' . $market_url;
 			}
 
 			$resultArray = [];
@@ -2840,3 +2900,29 @@ if ( ! function_exists( 'ep_get_subsite_activation_source' ) ) {
 }
 
 // End: Custom CSS/JS Frontend Injection Functions
+
+// Filter to override WordPress posts_per_page for Builder pages
+add_action('pre_get_posts', 'element_pack_override_posts_per_page_for_builder');
+
+function element_pack_override_posts_per_page_for_builder($query) {
+	// Only affect main query
+	if (!$query->is_main_query()) {
+		return;
+	}
+	
+	// Check if we have pagination in URL
+	$paged = max(1, get_query_var('paged'), get_query_var('page'));
+	
+	// Only apply override on paginated pages (page > 1)
+	if ($paged <= 1) {
+		return;
+	}
+	
+	$post_id = get_queried_object_id();
+	
+	if ($post_id && function_exists('get_post_meta')) {
+		// Set posts_per_page to -1 to show all posts and avoid pagination conflicts
+		$query->set('posts_per_page', -1);
+		$query->set('nopaging', true);
+	}
+}

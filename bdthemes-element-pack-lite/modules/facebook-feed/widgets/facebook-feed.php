@@ -22,6 +22,9 @@ class Facebook_Feed extends Module_Base {
 	public $api_url = 'https://graph.facebook.com/v4.0/%1$s/posts?%2$s&access_token=%3$s';
 
 	public $api_queries = 'fields=status_type,created_time,from,message,story,full_picture,permalink_url,attachments{type,media_type,title,description,unshimmed_url,subattachments},comments.summary(total_count),reactions.summary(total_count)';
+	
+	// Cache version - increment this to force cache refresh
+	private $cache_version = '1.1';
 
 	
 
@@ -150,7 +153,16 @@ class Facebook_Feed extends Module_Base {
 		$this->start_controls_section(
 			'section_additional',
 			[ 
-				'label' => esc_html__( 'Additional', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Additional Options', 'bdthemes-element-pack' ),
+			]
+		);
+
+		$this->add_control(
+			'post_limit',
+			[ 
+				'label'   => esc_html__( 'Post Limit', 'bdthemes-element-pack' ),
+				'type'    => Controls_Manager::NUMBER,
+				'default' => 6,
 			]
 		);
 
@@ -287,7 +299,7 @@ class Facebook_Feed extends Module_Base {
 		$this->add_control(
 			'show_image_album',
 			[ 
-				'label'   => esc_html__( 'Show Image Album', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'   => esc_html__( 'Show Image Album', 'bdthemes-element-pack' ),
 				'type'    => Controls_Manager::SWITCHER,
 			]
 		);
@@ -328,6 +340,7 @@ class Facebook_Feed extends Module_Base {
 				'label'   => esc_html__( 'Show Date', 'bdthemes-element-pack' ),
 				'type'    => Controls_Manager::SWITCHER,
 				'default' => 'yes',
+				'separator' => 'before'
 			]
 		);
 
@@ -350,15 +363,6 @@ class Facebook_Feed extends Module_Base {
 		);
 
 		$this->add_control(
-			'show_read_more',
-			[ 
-				'label'   => esc_html__( 'Show Read More', 'bdthemes-element-pack' ),
-				'type'    => Controls_Manager::SWITCHER,
-				'default' => 'yes',
-			]
-		);
-
-		$this->add_control(
 			'show_share',
 			[ 
 				'label'   => esc_html__( 'Show Share', 'bdthemes-element-pack' ),
@@ -368,11 +372,25 @@ class Facebook_Feed extends Module_Base {
 		);
 
 		$this->add_control(
+			'show_read_more',
+			[ 
+				'label'   => esc_html__( 'Show Read More', 'bdthemes-element-pack' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
+				'separator' => 'before'
+			]
+		);
+
+		$this->add_control(
 			'read_more_text',
 			[ 
 				'label'   => esc_html__( 'Read More Text', 'bdthemes-element-pack' ),
 				'type'    => Controls_Manager::TEXT,
-				'default' => 'See More',
+				'dynamic' => [ 'active' => true ],
+				'default' => esc_html__( 'See More', 'bdthemes-element-pack' ),
+				'condition' => [ 
+					'show_read_more' => 'yes'
+				]
 			]
 		);
 
@@ -386,16 +404,9 @@ class Facebook_Feed extends Module_Base {
 					'_blank' => esc_html__( 'Open in new window', 'bdthemes-element-pack' ),
 				],
 				'default'   => '_blank',
-				'separator' => 'before'
-			]
-		);
-
-		$this->add_control(
-			'post_limit',
-			[ 
-				'label'   => esc_html__( 'Post Limit', 'bdthemes-element-pack' ),
-				'type'    => Controls_Manager::NUMBER,
-				'default' => 6,
+				'condition' => [ 
+					'show_read_more' => 'yes'
+				]
 			]
 		);
 
@@ -536,19 +547,43 @@ class Facebook_Feed extends Module_Base {
 			[ 
 				'label' => esc_html__( 'Author', 'bdthemes-element-pack' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
+				'conditions' => [ 
+					'relation' => 'or',
+					'terms'    => 
+					[
+						[
+							'name'     => 'show_author_name',
+							'operator' => '===',
+							'value'    => 'yes'
+						],
+						[
+							'name'     => 'show_author_image',
+							'operator' => '===',
+							'value'    => 'yes'
+						]
+					]
+				]
 			]
 		);
 
 		$this->add_control(
 			'author_name',
 			[ 
-				'label' => esc_html__( 'N A M E', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'NAME', 'bdthemes-element-pack' ),
 				'type'  => Controls_Manager::HEADING,
+				'condition' => [ 
+					'show_author_name' => 'yes'
+				]
 			]
 		);
 
 		$this->start_controls_tabs(
-			'style_name_tabs'
+			'style_name_tabs',
+			[ 
+				'condition' => [ 
+					'show_author_name' => 'yes'
+				]
+			]
 		);
 
 		$this->start_controls_tab(
@@ -620,11 +655,24 @@ class Facebook_Feed extends Module_Base {
 		$this->end_controls_tabs();
 
 		$this->add_control(
+			'fb_feed_author_divider',
+			[
+				'type' 		=> Controls_Manager::DIVIDER,
+				'condition' => [ 
+					'show_author_name'  => 'yes',
+					'show_author_image' => 'yes'
+				]
+			]
+		);
+
+		$this->add_control(
 			'author_img',
 			[ 
-				'label'     => esc_html__( 'I M A G E', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'IMAGE', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -642,6 +690,9 @@ class Facebook_Feed extends Module_Base {
 				'selectors' => [ 
 					'{{WRAPPER}} .bdt-icon-img' => 'height: {{SIZE}}{{UNIT}}; width: {{SIZE}}{{UNIT}};',
 				],
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -654,6 +705,9 @@ class Facebook_Feed extends Module_Base {
 				'selectors'  => [ 
 					'{{WRAPPER}} .bdt-icon-img' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -664,6 +718,9 @@ class Facebook_Feed extends Module_Base {
 				'placeholder' => '1px',
 				'default'     => '1px',
 				'selector'    => '{{WRAPPER}} .bdt-icon-img',
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -676,6 +733,9 @@ class Facebook_Feed extends Module_Base {
 				'selectors'  => [ 
 					'{{WRAPPER}} .bdt-icon-img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}}; overflow: hidden;',
 				],
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -684,6 +744,9 @@ class Facebook_Feed extends Module_Base {
 			[ 
 				'name'     => 'author_img_background',
 				'selector' => '{{WRAPPER}} .bdt-icon-img',
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -692,6 +755,9 @@ class Facebook_Feed extends Module_Base {
 			[ 
 				'name'     => 'author_img_shadow',
 				'selector' => '{{WRAPPER}} .bdt-icon-img',
+				'condition' => [ 
+					'show_author_image' => 'yes'
+				]
 			]
 		);
 
@@ -743,6 +809,9 @@ class Facebook_Feed extends Module_Base {
 			[ 
 				'label' => esc_html__( 'Text', 'bdthemes-element-pack' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
+				'condition' => [ 
+					'show_desc' => 'yes'
+				]
 			]
 		);
 
@@ -1018,6 +1087,21 @@ class Facebook_Feed extends Module_Base {
 			[ 
 				'label' => esc_html__( 'Like/Comments', 'bdthemes-element-pack' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
+				'conditions' => [
+					'relation' => 'or',
+					'terms'    => [
+						[
+							'name'     => 'show_like',
+							'operator' => '===',
+							'value'    => 'yes',
+						],
+						[
+							'name'     => 'show_comments',
+							'operator' => '===',
+							'value'    => 'yes',
+						],
+					],
+				],
 			]
 		);
 
@@ -1030,6 +1114,10 @@ class Facebook_Feed extends Module_Base {
 				'selectors'  => [ 
 					'{{WRAPPER}} .bdt-facebook-feed-wrap .bdt-social-button' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
+				'condition' => [
+					'show_like' => 'yes',
+					'show_comments' => 'yes'
+				]
 			]
 		);
 
@@ -1039,8 +1127,12 @@ class Facebook_Feed extends Module_Base {
 				'label'     => esc_html__( 'Spacing', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'selectors' => [ 
-					'{{WRAPPER}} .bdt-facebook-feed-wrap .bdt-social-button .bdt-like-icon' => 'gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-facebook-feed-wrap .bdt-social-button' => 'gap: {{SIZE}}{{UNIT}};',
 				],
+				'condition' => [
+					'show_like' => 'yes',
+					'show_comments' => 'yes'
+				]
 			]
 		);
 
@@ -1535,7 +1627,7 @@ class Facebook_Feed extends Module_Base {
 		$this->add_responsive_control(
 			'share_button_dropdown_width',
 			[
-				'label' => __( 'Width', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label' => __( 'Width', 'bdthemes-element-pack' ),
 				'type' => Controls_Manager::SLIDER,
 				'size_units' => [ 'px' ],
 				'range' => [
@@ -1705,14 +1797,17 @@ class Facebook_Feed extends Module_Base {
 			return;
 		}
 		printf(
-			'<div class="bdt-read-more"><a href="%1$s" target="%2$s">%3$s
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="one bi bi-arrow-right" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-           </svg>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="two bi bi-arrow-right" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-          </svg>
-            </a></div>',
+			'<div class="bdt-read-more">
+				<a href="%1$s" target="%2$s">
+					%3$s
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="one bi bi-arrow-right" viewBox="0 0 16 16">
+						<path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+					</svg>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="two bi bi-arrow-right" viewBox="0 0 16 16">
+						<path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+					</svg>
+				</a>
+			</div>',
 			esc_url( $data['permalink_url'] ),
 			esc_attr( $settings['link_target'] ),
 			esc_html( $settings['read_more_text'] )
@@ -1804,7 +1899,8 @@ class Facebook_Feed extends Module_Base {
 			return;
 		}
 		$page_url   = "https://facebook.com/{$data['from']['id']}";
-		$avatar_url = "https://graph.facebook.com/v4.0/{$data['from']['id']}/picture";
+		// Use cached avatar if available, otherwise use Facebook URL
+		$avatar_url = ! empty( $data['from']['avatar_cached'] ) ? $data['from']['avatar_cached'] : "https://graph.facebook.com/v4.0/{$data['from']['id']}/picture";
 		printf(
 			'<a href="%1$s" target="%2$s" class="bdt-icon-img-wrap"><img class="bdt-icon-img" src="%3$s" alt="%4$s"></a>',
 			esc_url( $page_url ),
@@ -1857,11 +1953,13 @@ class Facebook_Feed extends Module_Base {
 	
 	protected function render_single_image( $data, $settings ) {
 		if ( isset( $data['full_picture'] ) ) {
+			// Use cached image if available, otherwise use Facebook URL
+			$image_url = ! empty( $data['full_picture_cached'] ) ? $data['full_picture_cached'] : $data['full_picture'];
 			printf(
 				'<div class="bdt-img-wrap"><div class="bdt-img-album-single bdt-img-item"><a href="%1$s" target="%2$s"><img src="%3$s" alt="%4$s"></a></div></div>',
 				esc_url( $data['permalink_url'] ),
 				esc_attr( $settings['link_target'] ),
-				esc_url( $data['full_picture'] ),
+				esc_url( $image_url ),
 				esc_html( $data['from']['name'] )
 			);
 		}
@@ -1873,10 +1971,11 @@ class Facebook_Feed extends Module_Base {
 
 		$album_img_count = count($subattachments) - $skip_image_count;
 
-		echo '<div class="bdt-img-wrap bdt-img-album-'. $album_img_count .'">';
+		echo '<div class="bdt-img-wrap bdt-img-album-'. esc_attr($album_img_count) .'">';
 		foreach ( $subattachments as $index => $subattachment ) {
 			if ( isset( $subattachment['media']['image']['src'] ) ) {
-				$image_url = $subattachment['media']['image']['src'];
+				// Use cached image if available, otherwise use Facebook URL
+				$image_url = ! empty( $subattachment['media']['image']['src_cached'] ) ? $subattachment['media']['image']['src_cached'] : $subattachment['media']['image']['src'];
 				$span = ( $index === $image_count - 1 && $skip_image_count > 0 ) 
 					? '<span class="bdt-album-img-count">+' . $skip_image_count . '</span>'
 					: '';
@@ -1885,7 +1984,7 @@ class Facebook_Feed extends Module_Base {
 					'<div class="bdt-img-album-item bdt-img-item"><a href="%1$s" target="%2$s">%3$s<img src="%4$s" alt="%5$s"></a></div>',
 					esc_url( $subattachment['target']['url'] ),
 					esc_attr( $settings['link_target'] ),
-					$span,
+					wp_kses_post($span),
 					esc_url( $image_url ),
 					esc_html( $data['from']['name'] )
 				);
@@ -2048,9 +2147,12 @@ class Facebook_Feed extends Module_Base {
 								if ( 'yes' == $settings['show_read_more'] || 'yes' == $settings['show_share'] ) {
 									printf( '<div class="bdt-share-and-readmore">' );
 								}
-
-								$this->render_read_more( $item );
-								$this->render_main_share( $item );
+								if ( 'yes' === $settings['show_read_more'] ) {
+									$this->render_read_more( $item );
+								}
+								if ( 'yes' === $settings['show_share'] ) {
+									$this->render_main_share( $item );
+								}
 
 								if ( 'yes' == $settings['show_read_more'] || 'yes' == $settings['show_share'] ) {
 									printf( '</div>' );
@@ -2091,7 +2193,7 @@ class Facebook_Feed extends Module_Base {
 		}
 
 		$id            = $fb_page_id;
-		$transient_key = sprintf( 'bdt-facebook-feed-data-%s', md5( $id ) );
+		$transient_key = sprintf( 'bdt-facebook-feed-data-%s-v%s', md5( $id ), $this->cache_version );
 
 		if ( $settings['data_cache'] == 'yes' ) {
 			$data = get_transient( $transient_key );
@@ -2105,6 +2207,11 @@ class Facebook_Feed extends Module_Base {
 		 */
 
 		if ( ! $data ) {
+			// Clean up old images before fetching fresh data
+			if ( $settings['data_cache'] == 'yes' ) {
+				$this->cleanup_page_images( $fb_page_id );
+			}
+			
 			$request_url   = sprintf( $this->api_url, $fb_page_id, $this->api_queries, $fb_access_token );
 			$raw_feed_data = $this->data_remote_request( $request_url );
 
@@ -2133,12 +2240,26 @@ class Facebook_Feed extends Module_Base {
 				return false;
 			}
 
+			// Process and cache images BEFORE saving transient
+			if ( $settings['data_cache'] == 'yes' && ! empty( $data ) ) {
+				$downloaded_images = array();
+				foreach ( $data as $key => $item ) {
+					$result = $this->cache_feed_images( $item );
+					$data[$key] = $result['data'];
+					$downloaded_images = array_merge( $downloaded_images, $result['images'] );
+				}
+				
+				// Store list of downloaded images for cleanup
+				$image_list_key = $transient_key . '_images';
+				$expireTime = $this->get_transient_expire( $settings );
+				set_transient( $image_list_key, $downloaded_images, apply_filters( 'element-pack/facebook-feed/cached-time', $expireTime ) );
+			}
+
 			$expireTime = $this->get_transient_expire( $settings );
 
 			if ( $settings['data_cache'] == 'yes' ) {
 				set_transient( $transient_key, $data, apply_filters( 'element-pack/facebook-feed/cached-time', $expireTime ) );
 			}
-			return $data;
 		}
 
 		return $data;
@@ -2179,5 +2300,181 @@ class Facebook_Feed extends Module_Base {
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get the upload directory for cached Facebook images
+	 */
+	private function get_upload_dir() {
+		$upload_dir = wp_upload_dir();
+		$fb_cache_dir = trailingslashit( $upload_dir['basedir'] ) . 'element-pack/facebook-feed/';
+		$fb_cache_url = trailingslashit( $upload_dir['baseurl'] ) . 'element-pack/facebook-feed/';
+		
+		if ( ! file_exists( $fb_cache_dir ) ) {
+			wp_mkdir_p( $fb_cache_dir );
+			// Add .htaccess to protect directory
+			file_put_contents( $fb_cache_dir . '.htaccess', 'Options -Indexes' );
+		}
+		
+		return array(
+			'dir' => $fb_cache_dir,
+			'url' => $fb_cache_url
+		);
+	}
+
+	/**
+	 * Download and cache a single image locally
+	 */
+	private function download_and_cache_image( $image_url, $identifier = '' ) {
+		if ( empty( $image_url ) ) {
+			return array( 'url' => $image_url, 'filename' => null );
+		}
+		
+		// Generate unique filename based on URL
+		$filename = md5( $image_url . $identifier ) . '.jpg';
+		$upload_info = $this->get_upload_dir();
+		$file_path = $upload_info['dir'] . $filename;
+		$file_url = $upload_info['url'] . $filename;
+		
+		// If file already exists and is recent, return local URL
+		if ( file_exists( $file_path ) ) {
+			return array( 'url' => $file_url, 'filename' => $filename );
+		}
+		
+		// Download image
+		$response = wp_remote_get( $image_url, array(
+			'timeout' => 30,
+			'sslverify' => false
+		) );
+		
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return array( 'url' => $image_url, 'filename' => null ); // Return original URL if download fails
+		}
+		
+		$image_data = wp_remote_retrieve_body( $response );
+		
+		if ( empty( $image_data ) ) {
+			return array( 'url' => $image_url, 'filename' => null );
+		}
+		
+		// Save image locally
+		$saved = file_put_contents( $file_path, $image_data );
+		
+		if ( $saved === false ) {
+			return array( 'url' => $image_url, 'filename' => null );
+		}
+		
+		return array( 'url' => $file_url, 'filename' => $filename );
+	}
+
+	/**
+	 * Cache all images in a feed item
+	 */
+	private function cache_feed_images( $item ) {
+		if ( empty( $item ) ) {
+			return array( 'data' => $item, 'images' => array() );
+		}
+		
+		$downloaded_files = array();
+		
+		// Cache main feature image
+		if ( ! empty( $item['full_picture'] ) ) {
+			$result = $this->download_and_cache_image( $item['full_picture'], 'full' );
+			$item['full_picture_cached'] = $result['url'];
+			if ( $result['filename'] ) {
+				$downloaded_files[] = $result['filename'];
+			}
+		}
+		
+		// Cache author profile image
+		if ( ! empty( $item['from']['id'] ) ) {
+			$avatar_url = "https://graph.facebook.com/v4.0/{$item['from']['id']}/picture";
+			$result = $this->download_and_cache_image( $avatar_url, 'avatar_' . $item['from']['id'] );
+			$item['from']['avatar_cached'] = $result['url'];
+			if ( $result['filename'] ) {
+				$downloaded_files[] = $result['filename'];
+			}
+		}
+		
+		// Cache album images
+		if ( ! empty( $item['attachments']['data'] ) && is_array( $item['attachments']['data'] ) ) {
+			foreach ( $item['attachments']['data'] as $att_key => $attachment ) {
+				if ( isset( $attachment['subattachments']['data'] ) && is_array( $attachment['subattachments']['data'] ) ) {
+					foreach ( $attachment['subattachments']['data'] as $sub_key => $subattachment ) {
+						if ( isset( $subattachment['media']['image']['src'] ) ) {
+							$result = $this->download_and_cache_image( 
+								$subattachment['media']['image']['src'], 
+								'album_' . $sub_key 
+							);
+							$item['attachments']['data'][$att_key]['subattachments']['data'][$sub_key]['media']['image']['src_cached'] = $result['url'];
+							if ( $result['filename'] ) {
+								$downloaded_files[] = $result['filename'];
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return array(
+			'data' => $item,
+			'images' => $downloaded_files
+		);
+	}
+
+	/**
+	 * Clean up old cached images
+	 */
+	public function cleanup_old_images( $max_age_days = 30 ) {
+		$upload_info = $this->get_upload_dir();
+		$cache_dir = $upload_info['dir'];
+		
+		if ( ! file_exists( $cache_dir ) ) {
+			return;
+		}
+		
+		$files = glob( $cache_dir . '*.jpg' );
+		$now = time();
+		$max_age = $max_age_days * DAY_IN_SECONDS;
+		
+		foreach ( $files as $file ) {
+			if ( is_file( $file ) ) {
+				$file_age = $now - filemtime( $file );
+				if ( $file_age > $max_age ) {
+					@unlink( $file );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Clean up images for a specific page when transient expires
+	 */
+	private function cleanup_page_images( $page_id ) {
+		$upload_info = $this->get_upload_dir();
+		$cache_dir = $upload_info['dir'];
+		
+		if ( ! file_exists( $cache_dir ) ) {
+			return;
+		}
+		
+		// Get transient key to track when it was last set
+		$transient_key = sprintf( 'bdt-facebook-feed-data-%s', md5( $page_id ) );
+		$image_list_key = $transient_key . '_images';
+		
+		// Get list of images from previous cache
+		$old_images = get_transient( $image_list_key );
+		
+		if ( ! empty( $old_images ) && is_array( $old_images ) ) {
+			foreach ( $old_images as $image_file ) {
+				$file_path = $cache_dir . $image_file;
+				if ( file_exists( $file_path ) ) {
+					@unlink( $file_path );
+				}
+			}
+		}
+		
+		// Clear the image list
+		delete_transient( $image_list_key );
 	}
 }

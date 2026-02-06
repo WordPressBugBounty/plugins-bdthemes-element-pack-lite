@@ -47,7 +47,7 @@ class Admin {
 		wp_enqueue_style('ep-editor', BDTEP_ASSETS_URL . 'css/ep-editor' . $direction_suffix . '.css', [], BDTEP_VER);
 		wp_enqueue_style('ep-admin', BDTEP_ADMIN_URL . 'assets/css/ep-admin' . $direction_suffix . '.css', [], BDTEP_VER);
 
-		wp_enqueue_script('bdt-uikit', BDTEP_ASSETS_URL . 'js/bdt-uikit' . $suffix . '.js', ['jquery'], '3.21.7');
+		wp_enqueue_script('bdt-uikit', BDTEP_ASSETS_URL . 'js/bdt-uikit.min.js', ['jquery'], '3.21.7');
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Admin {
 
         $row_meta = [
             'settings' => '<a href="'.admin_url( 'admin.php?page=element_pack_options' ) .'" aria-label="' . esc_attr(__('Go to settings', 'bdthemes-element-pack')) . '" >' . __('Settings', 'bdthemes-element-pack') . '</b></a>',
-            'gopro' => '<a href="https://store.bdthemes.com/element-pack?utm_source=ElementPackLite&utm_medium=PluginPage&utm_campaign=ElementPackLite&coupon=SUMMER25" aria-label="' . esc_attr(__('Go get the pro version', 'bdthemes-element-pack')) . '" target="_blank" title="When you purchase through this link you will get Up to 83% discount!" class="ep-go-pro">' . __('Upgrade For Up to 83% Off!', 'bdthemes-element-pack') . '</a>',
+            'gopro' => '<a href="https://bdthemes.com/deals/?utm_source=WordPress_org&utm_medium=bfcm_cta&utm_campaign=element_pack" aria-label="' . esc_attr(__('Go get the pro version', 'bdthemes-element-pack')) . '" target="_blank" title="When you purchase through this link you will get Up to 87% discount!" class="ep-go-pro">' . __('Black Friday Limited Offer Up To 87% Off!', 'bdthemes-element-pack') . '</a>',
         ];
 
         $plugin_meta = array_merge($plugin_meta, $row_meta);
@@ -112,7 +112,7 @@ class Admin {
 		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 		if ( is_admin() ) { // for Admin Dashboard Only
 			wp_enqueue_script('chart', BDTEP_ASSETS_URL . 'vendor/js/chart.min.js', ['jquery'], '2.7.3', true);
-			wp_enqueue_script('ep-admin', BDTEP_ADMIN_URL  . 'assets/js/ep-admin' . $suffix . '.js', ['jquery'], BDTEP_VER, true);
+			wp_enqueue_script('ep-admin', BDTEP_ADMIN_URL  . 'assets/js/ep-admin.min.js', ['jquery'], BDTEP_VER, true);
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('jquery-form');
 		}
