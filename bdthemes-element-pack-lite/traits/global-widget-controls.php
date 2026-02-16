@@ -747,9 +747,79 @@ trait Global_Widget_Controls {
 			'schema_activity',
 			[ 
 				'label'       => esc_html__( 'Schema Active', 'bdthemes-element-pack' ),
-				'description' => esc_html__( 'Warning: If you have multiple Accordion widgets on the same page so don\'t activate schema for both Accordion widgets so you will get errors on the google index. Activate the only one which you want to show on google search.', 'bdthemes-element-pack' ),
+				'description' => esc_html__( 'Adds FAQ structured data (microdata) for rich results. Note: Schema is auto-disabled when SEO plugins (Yoast, Rank Math, etc.) are active to prevent duplicate markup. Use the override below if you need to force-enable.', 'bdthemes-element-pack' ) . ( element_pack_is_seo_plugin_active() ? ' ' . esc_html__( 'An SEO plugin is detected on your site.', 'bdthemes-element-pack' ) : '' ),
 				'type'        => Controls_Manager::SWITCHER,
 				'separator'   => 'before',
+			]
+		);
+
+		$this->add_control(
+			'schema_override_seo',
+			[ 
+				'label'       => esc_html__( 'Override SEO Plugin Detection', 'bdthemes-element-pack' ),
+				'description' => esc_html__( 'Force output schema markup even when an SEO plugin is active. Use only if you have disabled FAQ schema in your SEO plugin to avoid duplicate markup errors in Google Search Console.', 'bdthemes-element-pack' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'condition'   => [ 
+					'schema_activity' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'accordion_animation',
+			[ 
+				'label'   => __( 'Animation', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'duration',
+			[ 
+				'label'   => __( 'Duration', 'bdthemes-element-pack' ) . BDTEP_PC,
+				'type'    => Controls_Manager::NUMBER,
+				'default' => 200,
+				'condition' => [ 
+					'accordion_animation' => 'yes',
+				],
+				'classes' => BDTEP_IS_PC,
+			]
+		);
+
+		$this->add_control(
+			'transition',
+			[ 
+				'label'   => __( 'Transition', 'bdthemes-element-pack' ) . BDTEP_PC,
+				'type'    => Controls_Manager::SELECT,
+				'options' => [ 
+					'' => 'None', 
+					'ease-in-out' => 'Ease In Out', 
+					'ease-out' => 'Ease Out', 
+					'ease-in' => 'Ease In',
+					'linear' => 'Linear',
+					'custom' => 'Custom',
+				],
+				'default' => 'ease-in-out',
+				'condition' => [ 
+					'accordion_animation' => 'yes',
+				],
+				'classes' => BDTEP_IS_PC,
+			]
+		);
+
+		$this->add_control(
+			'custom_transition',
+			[ 
+				'label'   => __( 'Custom Transition', 'bdthemes-element-pack' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'condition' => [ 
+					'transition' => 'custom',
+					'accordion_animation' => 'yes',
+				],
+				'placeholder' => 'cubic-bezier(0.4, 0, 0.2, 1)',
 			]
 		);
 
