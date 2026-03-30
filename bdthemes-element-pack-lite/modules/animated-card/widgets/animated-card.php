@@ -200,12 +200,12 @@ class Animated_Card extends Module_Base {
 				'default' => 'style-1',
 				'options' => [ 
 					'style-2' => [ 
-						'title' => esc_html__( 'Left', 'bdthemes-element-pack' ),
-						'icon'  => 'eicon-h-align-left',
-					],
-					'style-1' => [ 
 						'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-h-align-right',
+					],
+					'style-1' => [ 
+						'title' => esc_html__( 'Left', 'bdthemes-element-pack' ),
+						'icon'  => 'eicon-h-align-left',
 					],
 				],
 			]
@@ -397,8 +397,8 @@ class Animated_Card extends Module_Base {
 					'readmore_text!'                 => '',
 				],
 				'selectors' => [ 
-					'{{WRAPPER}} .bdt-ep-animated-card-btn .bdt-button-icon-align-right' => is_rtl() ? 'margin-right: {{SIZE}}{{UNIT}};' : 'margin-left: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bdt-ep-animated-card-btn .bdt-button-icon-align-left'  => is_rtl() ? 'margin-left: {{SIZE}}{{UNIT}};' : 'margin-right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-ep-animated-card-btn .bdt-button-icon-align-right' => is_rtl() ? 'margin-inline-end: {{SIZE}}{{UNIT}};' : 'margin-inline-start: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-ep-animated-card-btn .bdt-button-icon-align-left'  => is_rtl() ? 'margin-inline-start: {{SIZE}}{{UNIT}};' : 'margin-inline-end: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -461,7 +461,7 @@ class Animated_Card extends Module_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [ 
-					'{{WRAPPER}} .bdt-ep-animated-card-circle' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-ep-animated-card-circle::before' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -655,8 +655,8 @@ class Animated_Card extends Module_Base {
 					],
 				],
 				'selectors'  => [ 
-					'{{WRAPPER}} .bdt-style-1:hover .bdt-ep-animated-card-img' => 'left: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bdt-style-2:hover .bdt-ep-animated-card-img' => 'right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-style-1:hover .bdt-ep-animated-card-img' => 'inset-inline-end: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-style-2:hover .bdt-ep-animated-card-img' => 'inset-inline-start: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);

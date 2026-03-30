@@ -1269,6 +1269,7 @@ trait Global_Widget_Controls {
 			[ 
 				'label'       => __( 'Alignment', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::CHOOSE,
+				'default'     => 'right',
 				'options'     => [ 
 					'left'  => [ 
 						'title' => __( 'Start', 'bdthemes-element-pack' ),
@@ -1279,7 +1280,6 @@ trait Global_Widget_Controls {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'default'     => is_rtl() ? 'left' : 'right',
 				'toggle'      => false,
 				'label_block' => false,
 			]
@@ -1349,7 +1349,7 @@ trait Global_Widget_Controls {
 		$this->add_responsive_control(
 			'icon_space',
 			[ 
-				'label'     => __( 'Spacing', 'bdthemes-element-pack' ),
+				'label'     => __( 'Space Between', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -3301,8 +3301,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -4378,8 +4378,8 @@ trait Global_Widget_Controls {
 					'slider_icon[value]!' => '',
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-right' => is_rtl() ? 'margin-right: {{SIZE}}{{UNIT}};' : 'margin-left: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-left'  => is_rtl() ? 'margin-left: {{SIZE}}{{UNIT}};' : 'margin-right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-right' => is_rtl() ? 'margin-inline-end: {{SIZE}}{{UNIT}};' : 'margin-inline-start: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-left'  => is_rtl() ? 'margin-inline-start: {{SIZE}}{{UNIT}};' : 'margin-inline-end: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -5837,8 +5837,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -6021,8 +6021,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -6159,9 +6159,9 @@ trait Global_Widget_Controls {
 						'max' => 200,
 					],
 				],
-				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'selectors' => [
+						'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
