@@ -23,6 +23,9 @@ class Module extends Element_Pack_Module_Base {
     public function is_valid_captcha() {
         $ep_api_settings = get_option('element_pack_api_settings');
 
+        // The reCAPTCHA token is itself the anti-automation check here; the
+        // calling handler verifies the form nonce before this runs.
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified by the calling form handler.
         if (isset($_POST['g-recaptcha-response']) && !empty($ep_api_settings['recaptcha_secret_key'])) {
             $remote_ip = isset($_SERVER["REMOTE_ADDR"]) ? sanitize_text_field( wp_unslash( $_SERVER["REMOTE_ADDR"] ) ) : '';
 
@@ -37,6 +40,7 @@ class Module extends Element_Pack_Module_Base {
                 )
             );
 
+            // phpcs:enable WordPress.Security.NonceVerification.Missing
             if (is_wp_error($response)) {
                 return false;
             }
@@ -76,11 +80,11 @@ class Module extends Element_Pack_Module_Base {
     public function contact_form() {
 
         $email               = get_bloginfo('admin_email');
-        $error_empty         = esc_html__('Please fill in all the required fields.', 'bdthemes-element-pack');
-        $error_noemail       = esc_html__('Please enter a valid e-mail.', 'bdthemes-element-pack');
-        $error_same_as_admin = esc_html__('You can not use this e-mail due to security issues.', 'bdthemes-element-pack');
-        $error_spam_email    = esc_html__('You are trying to send e-mail by banned e-mail. Multiple tries can ban you permanently!', 'bdthemes-element-pack');
-        $result              = esc_html__('Unknown error! Please check your settings.', 'bdthemes-element-pack');
+        $error_empty         = esc_html__('Please fill in all the required fields.', 'bdthemes-element-pack-lite');
+        $error_noemail       = esc_html__('Please enter a valid e-mail.', 'bdthemes-element-pack-lite');
+        $error_same_as_admin = esc_html__('You can not use this e-mail due to security issues.', 'bdthemes-element-pack-lite');
+        $error_spam_email    = esc_html__('You are trying to send e-mail by banned e-mail. Multiple tries can ban you permanently!', 'bdthemes-element-pack-lite');
+        $result              = esc_html__('Unknown error! Please check your settings.', 'bdthemes-element-pack-lite');
         $ep_api_settings     = get_option('element_pack_api_settings');
         $api_settings        = get_option('element_pack_api_settings');;
 
@@ -91,13 +95,13 @@ class Module extends Element_Pack_Module_Base {
         if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] == 'POST' ) {
 
             if (!isset($_REQUEST['_wpnonce']) || !wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'simpleContactForm')) {
-                $result = esc_html__('Security check failed!', 'bdthemes-element-pack');
+                $result = esc_html__('Security check failed!', 'bdthemes-element-pack-lite');
                 echo '<span class="bdt-text-warning">' . esc_html($result) . '</span>';
                 wp_die();
             }
 
             $post_id   = isset( $_REQUEST['page_id'] ) ? absint($_REQUEST['page_id']) : 0;
-            $widget_id = isset( $_REQUEST['widget_id'] ) ? $_REQUEST['widget_id'] : 0;
+            $widget_id = isset( $_REQUEST['widget_id'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['widget_id'] ) ) : 0;
 
             $error = false;
 
@@ -141,11 +145,11 @@ class Module extends Element_Pack_Module_Base {
 
                 $success = (strlen($custom_message) <= 255) 
                     ? $custom_message 
-                    : esc_html__('Invalid length of custom success message.', 'bdthemes-element-pack');
+                    : esc_html__('Invalid length of custom success message.', 'bdthemes-element-pack-lite');
             } else {
                 $success = sprintf(
                     /* translators: %s: The name submitted in the contact form */
-                    esc_html__('Hi, %s. We got your e-mail. We\'ll reply to you very soon. Thanks for being with us...', 'bdthemes-element-pack'),
+                    esc_html__('Hi, %s. We got your e-mail. We\'ll reply to you very soon. Thanks for being with us...', 'bdthemes-element-pack-lite'),
                     esc_html($form_data['name'])
                 );
             }
@@ -185,11 +189,11 @@ class Module extends Element_Pack_Module_Base {
                 if (!empty($ep_api_settings['recaptcha_site_key']) and !empty($ep_api_settings['recaptcha_secret_key'])) {
                     if (!$this->is_valid_captcha()) {
                         $error  = true;
-                        $result = esc_html__("reCAPTCHA is invalid!", "bdthemes-element-pack");
+                        $result = esc_html__("reCAPTCHA is invalid!", "bdthemes-element-pack-lite");
                     }
                 } else {
                     $error  = true;
-                    $result = esc_html__("reCAPTCHA API keys are not set properly! Go to the Element Pack API settings page to configure them.", "bdthemes-element-pack");
+                    $result = esc_html__("reCAPTCHA API keys are not set properly! Go to the Element Pack API settings page to configure them.", "bdthemes-element-pack-lite");
                 }
             }
 
