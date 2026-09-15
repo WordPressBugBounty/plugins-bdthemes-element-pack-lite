@@ -258,7 +258,15 @@ class Setup_Wizard {
 
 		$plugin_slug = sanitize_text_field( wp_unslash( $plugin_slug ) );
 
-		if ( ! preg_match( '#^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*\.php$#', $plugin_slug ) ) {
+		// The integration step posts WordPress.org slugs ("ultimate-post-kit"),
+		// because that is all the plugins API reports for something that is not
+		// installed yet; the main file is only knowable afterwards. Accept that
+		// form as well as a full "dir/file.php" basename, and let
+		// get_plugin_file() resolve a slug to its real file.
+		$is_basename = (bool) preg_match( '#^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*\.php$#', $plugin_slug );
+		$is_slug     = (bool) preg_match( '#^[A-Za-z0-9][A-Za-z0-9._-]*$#', $plugin_slug );
+
+		if ( ! $is_basename && ! $is_slug ) {
 			return '';
 		}
 
@@ -311,12 +319,15 @@ class Setup_Wizard {
 
 		// $upgrader = new \Plugin_Upgrader();
 
-        $installedPlugins = get_plugins();
 		$results = array();
 
 		foreach ( $plugin_slugs as $plugin_slug ) {
+            // The request carries a wp.org slug, so the main file is whatever
+            // the installed plugin actually uses ('' while not installed).
+            $plugin_file = $this->get_plugin_file( $plugin_slug );
+
             // skip when the plugin is already active
-            if (is_plugin_active($plugin_slug)) {
+            if ('' !== $plugin_file && is_plugin_active($plugin_file)) {
                 $results[] = array(
                     'slug'    => $plugin_slug,
                     'success' => true,
@@ -326,7 +337,7 @@ class Setup_Wizard {
             }
 
             // Download the plugin if the plugin is not installed
-            if (!isset($installedPlugins[$plugin_slug])) {
+            if ('' === $plugin_file) {
                 $slug = explode('/', $plugin_slug)[0];
                 $api = plugins_api( 'plugin_information', array( 'slug' => $slug ) );
 
@@ -348,13 +359,27 @@ class Setup_Wizard {
                     );
                     continue;
                 }
+
+                // The plugin list is cached; refresh it so the file that was
+                // just written is visible, then resolve the real basename.
+                wp_clean_plugins_cache( false );
+                $plugin_file = $this->get_plugin_file( $plugin_slug );
+
+                if ( '' === $plugin_file ) {
+                    $results[] = array(
+                        'slug'    => $plugin_slug,
+                        'success' => false,
+                        'message' => 'Installed, but the plugin file could not be located.',
+                    );
+                    continue;
+                }
             }
 
             // active the plugin
-            if ( is_plugin_inactive($plugin_slug) ) {
+            if ( is_plugin_inactive($plugin_file) ) {
                 // validate_plugin() confirms the file is a real plugin inside
                 // WP_PLUGIN_DIR before we hand it to activate_plugin().
-                $is_valid_plugin = validate_plugin( $plugin_slug );
+                $is_valid_plugin = validate_plugin( $plugin_file );
 
                 if ( is_wp_error( $is_valid_plugin ) ) {
                     $results[] = array(
@@ -365,7 +390,7 @@ class Setup_Wizard {
                     continue;
                 }
 
-                $activation_result = activate_plugin( $plugin_slug );
+                $activation_result = activate_plugin( $plugin_file );
                 if ( is_wp_error( $activation_result ) ) {
                     $results[] = array(
                         'slug'    => $plugin_slug,
@@ -389,21 +414,31 @@ class Setup_Wizard {
 	}
 
 	/**
-	 * Get the main plugin file path for a given slug.
+	 * Resolve a plugin reference to the installed plugin's main file.
 	 *
-	 * @param string $slug Plugin slug.
-	 * @return string|false Plugin file path or false if not found.
+	 * Accepts either a WordPress.org slug ("ultimate-post-kit") or a full
+	 * basename ("ultimate-post-kit/ultimate-post-kit.php"). Matching is exact
+	 * on the plugin's own directory: a substring match would let "ai-image"
+	 * resolve to an unrelated "ai-image-extras/..." that happens to be
+	 * installed.
+	 *
+	 * @param string $slug Plugin slug or basename.
+	 * @return string Plugin file path, or '' when the plugin is not installed.
 	 */
 	private function get_plugin_file( $slug ) {
 		$plugins = get_plugins();
 
+		if ( false !== strpos( $slug, '/' ) ) {
+			return isset( $plugins[ $slug ] ) ? $slug : '';
+		}
+
 		foreach ( $plugins as $file => $plugin ) {
-			if ( strpos( $file, $slug ) !== false ) {
+			if ( dirname( $file ) === $slug ) {
 				return $file;
 			}
 		}
 
-		return false;
+		return '';
 	}
     
     /**
@@ -494,7 +529,27 @@ add_action('wp_ajax_ep_setup_wizard_import_template', function () {
         ));
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack-lite')]);
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: %s: error reported by the HTTP request. */
+                    esc_html__('Failed to fetch template from URL: %s', 'bdthemes-element-pack-lite'),
+                    esc_html($response->get_error_message())
+                ),
+            ]);
+            wp_die();
+        }
+
+        $response_code = (int) wp_remote_retrieve_response_code($response);
+
+        if (200 !== $response_code) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: 1: HTTP status code, 2: template URL. */
+                    esc_html__('Failed to fetch template from URL (HTTP %1$d): %2$s', 'bdthemes-element-pack-lite'),
+                    $response_code,
+                    esc_html($json_url)
+                ),
+            ]);
             wp_die();
         }
 
@@ -502,7 +557,7 @@ add_action('wp_ajax_ep_setup_wizard_import_template', function () {
         $sourceData2 = json_decode($sourceData, true);
 
         if (!$sourceData2 || !is_array($sourceData2)) {
-            wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack-lite')]);
+            wp_send_json_error(['message' => esc_html__('The template URL did not return valid template JSON.', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
@@ -575,6 +630,49 @@ add_action('wp_ajax_ep_setup_wizard_import_template', function () {
 );
 
 
+/**
+ * Map an import URL back to a starter kit that ships inside this plugin.
+ *
+ * Full builds carry the .zip kits under includes/setup-wizard/assets/templates/.
+ * wordpress.org builds cannot ship compressed files, so those kits are fetched
+ * from the remote host instead. Returns the absolute path for a bundled kit and
+ * null for anything else, which is then downloaded over HTTP.
+ *
+ * @param string $file_url Import URL supplied by the wizard.
+ * @return string|null
+ */
+function element_pack_setup_wizard_bundled_kit_path( $file_url ) {
+	$templates_url  = plugins_url( 'includes/setup-wizard/assets/templates/', BDTEP__FILE__ );
+	$templates_path = BDTEP_INC_PATH . 'setup-wizard/assets/templates/';
+
+	// The site may be reached over either scheme, so compare without one.
+	$strip_scheme = static function ( $url ) {
+		return preg_replace( '#^https?://#i', '', (string) $url );
+	};
+
+	if ( 0 !== strpos( $strip_scheme( $file_url ), $strip_scheme( $templates_url ) ) ) {
+		return null;
+	}
+
+	$file_name = sanitize_file_name( wp_basename( (string) wp_parse_url( $file_url, PHP_URL_PATH ) ) );
+
+	if ( '' === $file_name || 'zip' !== strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ) ) {
+		return null;
+	}
+
+	$real_base = realpath( $templates_path );
+	$real_file = realpath( $templates_path . $file_name );
+
+	// Confine reads to the bundled templates directory, whatever the URL says.
+	if ( false === $real_base || false === $real_file
+		|| 0 !== strpos( $real_file, $real_base . DIRECTORY_SEPARATOR )
+		|| ! is_file( $real_file ) ) {
+		return null;
+	}
+
+	return $real_file;
+}
+
 add_action('wp_ajax_ep_setup_wizard_import_bundle', function () {
     check_ajax_referer('ep_setup_wizard_nonce', 'nonce');
 
@@ -590,21 +688,50 @@ add_action('wp_ajax_ep_setup_wizard_import_bundle', function () {
         wp_send_json_error(['message' => esc_html__('Invalid import URL', 'bdthemes-element-pack-lite')]);
     }
 
-    $remote_zip_request = wp_safe_remote_get($file_url, array(
-        'timeout'   => 60,
-        'sslverify' => false,
-    ));
+    // A kit that ships with the plugin is read from disk. Pulling it over HTTP
+    // would make the site request its own URL, which many hosts block.
+    $local_kit = element_pack_setup_wizard_bundled_kit_path($file_url);
 
-    if (is_wp_error($remote_zip_request)) {
-        wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack-lite')]);
+    if ($local_kit) {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a validated file inside this plugin.
+        $kit_body = file_get_contents($local_kit);
+
+        if (false === $kit_body) {
+            wp_send_json_error(['message' => esc_html__('The bundled template could not be read.', 'bdthemes-element-pack-lite')]);
+        }
+    } else {
+        $remote_zip_request = wp_safe_remote_get($file_url, array(
+            'timeout'   => 60,
+            'sslverify' => false,
+        ));
+
+        if (is_wp_error($remote_zip_request)) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: %s: error reported by the HTTP request. */
+                    esc_html__('Failed to fetch template from URL: %s', 'bdthemes-element-pack-lite'),
+                    esc_html($remote_zip_request->get_error_message())
+                ),
+            ]);
+        }
+
+        $response_code = (int) wp_remote_retrieve_response_code($remote_zip_request);
+
+        if (200 !== $response_code) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: 1: HTTP status code, 2: template URL. */
+                    esc_html__('Failed to fetch template from URL (HTTP %1$d): %2$s', 'bdthemes-element-pack-lite'),
+                    $response_code,
+                    esc_html($file_url)
+                ),
+            ]);
+        }
+
+        $kit_body = wp_remote_retrieve_body($remote_zip_request);
     }
 
-
-    if (200 !== $remote_zip_request['response']['code']) {
-        wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack-lite')]);
-    }
-
-    $kit_zip_path = Plugin::$instance->uploads_manager->create_temp_file($remote_zip_request['body'], 'kit.zip');
+    $kit_zip_path = Plugin::$instance->uploads_manager->create_temp_file($kit_body, 'kit.zip');
 
     $app = Plugin::$instance->app;
     if (!$app) {
@@ -616,7 +743,10 @@ add_action('wp_ajax_ep_setup_wizard_import_bundle', function () {
     try {
         $result = $import_export_module->upload_kit($kit_zip_path, 'local');
         $manifest = $result['manifest'] ?? [];
-        $plugins = $manifest['plugins'];
+        // A kit may legitimately declare no plugins; every other manifest key
+        // below is read defensively, and an unguarded read here turned such a
+        // kit into "Import failed: foreach() argument must be of type array".
+        $plugins = $manifest['plugins'] ?? [];
 
         $missingPlugins = [];
         foreach ($plugins as $plugin) {
@@ -633,7 +763,11 @@ add_action('wp_ajax_ep_setup_wizard_import_bundle', function () {
             ]);
         }
 
-        $tmp_folder_id = $result['session'];
+        $tmp_folder_id = $result['session'] ?? '';
+
+        if ('' === $tmp_folder_id) {
+            wp_send_json_error(['message' => esc_html__('Import failed: the uploaded kit returned no session.', 'bdthemes-element-pack-lite')]);
+        }
         $includes = [];
         $selectedCustomPostTypes = [];
 
