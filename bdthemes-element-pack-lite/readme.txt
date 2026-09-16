@@ -5,7 +5,7 @@ Tags: elementor widgets, widgets for elementor, elementor addons, elementor temp
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 7.4.0
-Stable tag: 8.8.3
+Stable tag: 8.8.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 4.0.0
@@ -301,6 +301,13 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 10. Others Widgets List
 
 == Changelog ==
+
+= 8.8.4 [16th September 2026] =
+
+* Fixed: Social Share widget printed the same unescaped social network name into the icon class and into the repeater row label while the page was open in the Elementor editor, where the earlier fix did not reach
+* Fixed: Social Share widget treated a button left empty as a supported network, which let it through the new check and logged PHP warnings while building the icon and the label
+* Fixed: Heading tag choices were written straight into the markup of the editor preview, so a saved value other than the offered headings could add attributes of its own; all widgets now fall back to a div, as the Accordion already did
+* Fixed: Editor preview of Member, Panel Slider, Scroll Nav, Static Carousel, Static Grid Tab, Step Flow, Review Card, Review Card Carousel and Product Carousel printed links, image URLs, tooltip text and animation choices into attributes without escaping them
 
 = 8.8.3 [15th September 2026] =
 
