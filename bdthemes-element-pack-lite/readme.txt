@@ -5,11 +5,11 @@ Tags: elementor widgets, widgets for elementor, elementor addons, elementor temp
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 7.4.0
-Stable tag: 8.8.4
+Stable tag: 8.8.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 4.0.0
-Elementor tested up to: 4.2.4
+Elementor tested up to: 4.3.0
 
 
 Elementor addons with 300+ Elementor widgets, WooCommerce Elementor elements, Elementor templates, Elementor mega menu, Elementor header footer builder and extensions.
@@ -123,6 +123,17 @@ Privacy Policy: https://elementpack.pro/privacy-policy/
 Used to display BdThemes product news on the plugin's own admin dashboard page.
 Data sent: a plain read request to dashboard.bdthemes.io when an administrator loads the
 Element Pack settings screen. No personal data is transmitted.
+Service provided by BdThemes.
+Terms: https://elementpack.pro/terms-and-conditions/
+Privacy Policy: https://bdthemes.com/privacy-policy/
+
+= Element Pack newsletter (BdThemes) =
+Used to send the Element Pack newsletter (news, tips and security notices) to administrators
+who ask for it.
+Data sent: only if an administrator ticks the newsletter checkbox on the setup wizard's welcome
+screen (it is unticked by default) and then clicks "Get Started", the plugin sends the email
+address entered there, together with the first and last name from that administrator's
+WordPress profile, to marketing.sigmative.com. Nothing is sent when the box is left unticked.
 Service provided by BdThemes.
 Terms: https://elementpack.pro/terms-and-conditions/
 Privacy Policy: https://bdthemes.com/privacy-policy/
@@ -301,6 +312,10 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 10. Others Widgets List
 
 == Changelog ==
+
+= 8.8.5 [23rd September 2026] =
+
+* Updated: System improved
 
 = 8.8.4 [16th September 2026] =
 
