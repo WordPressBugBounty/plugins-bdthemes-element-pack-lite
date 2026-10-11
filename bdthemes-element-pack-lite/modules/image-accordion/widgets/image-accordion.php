@@ -246,7 +246,7 @@ class Image_Accordion extends Module_Base {
 						'slide_image' => ['url' => BDTEP_ASSETS_URL . 'images/gallery/item-4.svg']
 					],
 				],
-				'title_field' => '{{{ image_accordion_title }}}',
+				'title_field' => '{{ image_accordion_title }}',
 			]
 		);
 
@@ -1589,7 +1589,7 @@ class Image_Accordion extends Module_Base {
 
 		if ( ! empty( $settings['show_lightbox'] ) && $settings['show_lightbox'] === 'yes' ) {
 			$lightbox_animation = isset( $settings['lightbox_animation'] ) ? $settings['lightbox_animation'] : 'slide';
-			$this->add_render_attribute( 'image-accordion', 'data-bdt-lightbox', 'toggle: .bdt-ep-image-accordion-lightbox; animation:' . esc_attr( $lightbox_animation ) . ';' );
+			$this->add_render_attribute( 'image-accordion', 'data-bdt-lightbox', 'toggle: .bdt-ep-image-accordion-lightbox; animation:' . element_pack_lightbox_animation( $lightbox_animation ) . ';' );
 			if ( ! empty( $settings['lightbox_autoplay'] ) && $settings['lightbox_autoplay'] === 'yes' ) {
 				$this->add_render_attribute( 'image-accordion', 'data-bdt-lightbox', 'autoplay: 500;' );
 				if ( ! empty( $settings['lightbox_pause'] ) && $settings['lightbox_pause'] === 'yes' ) {
@@ -1658,9 +1658,16 @@ class Image_Accordion extends Module_Base {
 		}
 		var dataSettings = JSON.stringify( ds );
 
+		// UIkit re-parses this option string, so only the values the control
+		// offers may reach it; a semicolon would otherwise introduce an option
+		// of UIkit's own.
+		var epLightboxAnimation = function( value, fallback ) {
+			return [ 'slide', 'fade', 'scale' ].indexOf( value ) !== -1 ? value : fallback;
+		};
+
 		var lbAttr = '';
 		if ( settings.show_lightbox === 'yes' ) {
-			lbAttr = 'toggle: .bdt-ep-image-accordion-lightbox; animation:' + ( settings.lightbox_animation || 'slide' ) + ';';
+			lbAttr = 'toggle: .bdt-ep-image-accordion-lightbox; animation:' + epLightboxAnimation( settings.lightbox_animation, 'slide' ) + ';';
 			if ( settings.lightbox_autoplay === 'yes' ) {
 				lbAttr += ' autoplay: 500;';
 				if ( settings.lightbox_pause === 'yes' ) {
@@ -1686,7 +1693,7 @@ class Image_Accordion extends Module_Base {
 			buttonWrapClass += ' bdt-visible@s';
 		}
 		#>
-		<div id="{{ accordionId }}" class="bdt-ep-image-accordion" data-settings='{{{ dataSettings }}}'<# if ( lbAttr ) { #> data-bdt-lightbox="{{ lbAttr }}"<# } #>>
+		<div id="{{ accordionId }}" class="bdt-ep-image-accordion" data-settings='{{ dataSettings }}'<# if ( lbAttr ) { #> data-bdt-lightbox="{{ lbAttr }}"<# } #>>
 			<# _.each( items, function( item ) {
 				var slideImage = ( item.slide_image && item.slide_image.url ) ? item.slide_image.url : '';
 				var titleLinkUrl = ( item.title_link && item.title_link.url ) ? item.title_link.url : '';
@@ -1714,7 +1721,7 @@ class Image_Accordion extends Module_Base {
 				<# if ( settings.show_lightbox === 'yes' && slideImage ) { #>
 				<a class="bdt-ep-image-accordion-lightbox" href="{{ slideImage }}" data-elementor-open-lightbox="no"<# if ( caption ) { #> data-caption="{{ caption }}"<# } #>>
 					<# if ( settings.link_type === 'text' && settings.link_text ) { #>
-					<span class="bdt-text">{{{ settings.link_text }}}</span>
+					<span class="bdt-text">{{ settings.link_text }}</span>
 					<# } else { #>
 					<i class="ep-icon-{{ settings.icon || 'plus' }}" aria-hidden="true"></i>
 					<# } #>
@@ -1722,28 +1729,28 @@ class Image_Accordion extends Module_Base {
 				<# } #>
 				<div class="bdt-ep-image-accordion-content">
 					<# if ( settings.show_sub_title === 'yes' && item.image_accordion_sub_title ) { #>
-					<div class="{{ subTitleClass }}">{{{ item.image_accordion_sub_title }}}</div>
+					<div class="{{ subTitleClass }}">{{{ elementor.helpers.sanitize( item.image_accordion_sub_title ) }}}</div>
 					<# } #>
 					<# if ( settings.show_title === 'yes' && item.image_accordion_title ) { #>
 					<# if ( titleLinkUrl ) { #>
 					<a href="{{ titleLinkUrl }}" target="{{ titleTarget }}"<# if ( titleRel ) { #> rel="{{ titleRel }}"<# } #>>
 					<# } #>
 					<{{ titleTag }} class="{{ titleClass }}">
-						{{{ item.image_accordion_title }}}
+						{{{ elementor.helpers.sanitize( item.image_accordion_title ) }}}
 					</{{ titleTag }}>
 					<# if ( titleLinkUrl ) { #>
 					</a>
 					<# } #>
 					<# } #>
 					<# if ( settings.show_text === 'yes' && item.image_accordion_text ) { #>
-					<div class="{{ textClass }}">{{{ item.image_accordion_text }}}</div>
+					<div class="{{ textClass }}">{{{ elementor.helpers.sanitize( item.image_accordion_text ) }}}</div>
 					<# } #>
 					<# if ( settings.show_button === 'yes' && item.image_accordion_button ) { #>
 					<div class="{{ buttonWrapClass }}">
 						<# if ( buttonLinkUrl ) { #>
 						<a href="{{ buttonLinkUrl }}" target="{{ btnTarget }}"<# if ( btnRel ) { #> rel="{{ btnRel }}"<# } #>>
 						<# } #>
-						{{{ item.image_accordion_button }}}
+						{{{ elementor.helpers.sanitize( item.image_accordion_button ) }}}
 						<# if ( buttonLinkUrl ) { #>
 						</a>
 						<# } #>
@@ -1760,7 +1767,7 @@ class Image_Accordion extends Module_Base {
 					<# if ( settings.show_lightbox === 'yes' && slideImage ) { #>
 					<a class="bdt-ep-image-accordion-lightbox" href="{{ slideImage }}" data-elementor-open-lightbox="no"<# if ( caption ) { #> data-caption="{{ caption }}"<# } #>>
 						<# if ( settings.link_type === 'text' && settings.link_text ) { #>
-						<span class="bdt-text">{{{ settings.link_text }}}</span>
+						<span class="bdt-text">{{ settings.link_text }}</span>
 						<# } else { #>
 						<i class="ep-icon-{{ settings.icon || 'plus' }}" aria-hidden="true"></i>
 						<# } #>
@@ -1769,28 +1776,28 @@ class Image_Accordion extends Module_Base {
 				</div>
 				<div class="bdt-ep-image-accordion-content">
 					<# if ( settings.show_sub_title === 'yes' && item.image_accordion_sub_title ) { #>
-					<div class="{{ subTitleClass }}">{{{ item.image_accordion_sub_title }}}</div>
+					<div class="{{ subTitleClass }}">{{{ elementor.helpers.sanitize( item.image_accordion_sub_title ) }}}</div>
 					<# } #>
 					<# if ( settings.show_title === 'yes' && item.image_accordion_title ) { #>
 					<# if ( titleLinkUrl ) { #>
 					<a href="{{ titleLinkUrl }}" target="{{ titleTarget }}"<# if ( titleRel ) { #> rel="{{ titleRel }}"<# } #>>
 					<# } #>
 					<{{ titleTag }} class="{{ titleClass }}">
-						{{{ item.image_accordion_title }}}
+						{{{ elementor.helpers.sanitize( item.image_accordion_title ) }}}
 					</{{ titleTag }}>
 					<# if ( titleLinkUrl ) { #>
 					</a>
 					<# } #>
 					<# } #>
 					<# if ( settings.show_text === 'yes' && item.image_accordion_text ) { #>
-					<div class="{{ textClass }}">{{{ item.image_accordion_text }}}</div>
+					<div class="{{ textClass }}">{{{ elementor.helpers.sanitize( item.image_accordion_text ) }}}</div>
 					<# } #>
 					<# if ( settings.show_button === 'yes' && item.image_accordion_button ) { #>
 					<div class="{{ buttonWrapClass }}">
 						<# if ( buttonLinkUrl ) { #>
 						<a href="{{ buttonLinkUrl }}" target="{{ btnTarget }}"<# if ( btnRel ) { #> rel="{{ btnRel }}"<# } #>>
 						<# } #>
-						{{{ item.image_accordion_button }}}
+						{{{ elementor.helpers.sanitize( item.image_accordion_button ) }}}
 						<# if ( buttonLinkUrl ) { #>
 						</a>
 						<# } #>
